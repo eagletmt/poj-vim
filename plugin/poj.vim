@@ -72,7 +72,6 @@ function! s:get_user_status(user)
     execute 'sbuffer' s:bufnr_{a:user}
   endif
 
-  call s:setup_syntax()
   call setline(1, lines)
 endfunction
 
@@ -121,30 +120,6 @@ function! s:submit(problem_id)
         \ s:curl, s:cookie_file, a:problem_id, lang2nr[lang], src))
 
   call s:get_user_status(g:poj_user)
-endfunction
-
-function! s:setup_syntax()
-  syntax clear
-  syntax match pojstatusAC /Accepted/
-  syntax match pojstatusPE /Presentation Error/
-  syntax match pojstatusTLE /Time Limit Exceeded/
-  syntax match pojstatusMLE /Memory Limit Exceeded/
-  syntax match pojstatusWA /Wrong Answer/
-  syntax match pojstatusRE /Runtime Error/
-  syntax match pojstatusOLE /Output Limit Exceeded/
-  syntax match pojstatusCE /Compile Error/
-  syntax match pojstatusSE /System Error/
-  syntax match pojstatusVE /Validation Error/
-  highlight pojstatusAC ctermfg=Blue guifg=Blue
-  highlight pojstatusPE ctermfg=Red guifg=Red
-  highlight default link pojstatusTLE pojstatusPE
-  highlight default link pojstatusMLE pojstatusPE
-  highlight default link pojstatusWA pojstatusPE
-  highlight default link pojstatusRE pojstatusPE
-  highlight default link pojstatusOLE pojstatusPE
-  highlight pojstatusCE ctermfg=Green guifg=Green
-  highlight default link pojstatusSE pojstatusCE
-  highlight default link pojstatusVE pojstatusVE
 endfunction
 
 function! s:urlencode(s)
