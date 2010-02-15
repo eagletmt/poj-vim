@@ -1,0 +1,19 @@
+Vim から POJ<http://acm.pku.edu.cn/JudgeOnline> に submit したり status を見たりすることができるようになります．
+
+curl 必須．
+
+適当なディレクトリに入れて runtimepath を通してください．
+ユーザ名，パスワードはそれぞれ g:poj_user, g:poj_password に設定してください．
+これが無い場合は submit するときに入力を促します．
+
+&filetype で自動的に言語を選択します．
+デフォルトでは c のときは GCC，cpp のときは G++ を選びますが，それぞれ g:poj_prefer_c が真ならば C を，g:poj_prefer_cpp が真なら C++ を選びます．
+
+コマンド
+- POJSubmit problem_id
+現在のバッファを submit し，自分の status を表示する．
+
+- POJUserStatus user
+user の status を表示する．
+<Leader><Leader> すると更新できます．
+
