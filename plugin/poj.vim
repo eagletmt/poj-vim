@@ -1,4 +1,12 @@
+if exists('g:loaded_poj') && g:loaded_poj
+  finish
+endif
+
 let s:curl = 'curl'
+if !executable(s:curl)
+  echoerr 'this script requires curl'
+  finish
+endif
 let s:path_separator = has('win32') ? '\\' : '/'
 let s:cookie_file = substitute(expand('<sfile>:p:h'), 'plugin$', 'cookie', '') . s:path_separator . 'poj.cookie'
 
@@ -124,4 +132,6 @@ endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
 command! -nargs=1 POJSubmit call <SID>submit(<q-args>)
+
+let g:loaded_poj = 1
 
