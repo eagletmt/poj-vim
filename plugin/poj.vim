@@ -18,9 +18,7 @@ function! s:get_user_status(user)
 
   let lines = []
   for l in split(conn, '\n')
-    let l = substitute(substitute(l, '<tr [^>]\+>', '', 'g'), '</tr>', '', 'g')
-    let l = substitute(substitute(l, '<a [^>]\+>', '', 'g'), '</a>', '', 'g')
-    let l = substitute(substitute(l, '<font [^>]\+>', '', 'g'), '</font>', '', 'g')
+    let l = s:remove_tags(s:remove_tags(s:remove_tags(l, 'tr'), 'a'), 'font')
     let l = substitute(l, '</td>', '', 'g')
     if l[0:3] == '<td>'
       call add(lines, substitute(l[4:], '<td>', '\t', 'g'))
@@ -118,6 +116,10 @@ endfunction
 
 function! s:urlencode(s)
   return substitute(a:s, '[^a-zA-Z0-9_-]', '\=printf("%%%02X", char2nr(submatch(0)))', 'g')
+endfunction
+
+function! s:remove_tags(s, name)
+  return substitute(substitute(a:s, '<' . a:name . ' [^>]\+>', '', 'g'), '</' . a:name . '>', '', 'g')
 endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
