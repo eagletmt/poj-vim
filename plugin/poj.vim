@@ -130,6 +130,10 @@ function! s:submit(problem_id)
   call s:get_user_status(g:poj_user)
 endfunction
 
+function! s:complete_submit(a, l, p)
+  return [matchstr(expand('%:t'), '\d\{4\}')]
+endfunc
+
 function! s:urlencode(s)
   return substitute(a:s, '[^a-zA-Z0-9_-]', '\=printf("%%%02X", char2nr(submatch(0)))', 'g')
 endfunction
@@ -139,7 +143,7 @@ function! s:remove_tags(s, name)
 endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
-command! -nargs=1 POJSubmit call <SID>submit(<q-args>)
+command! -nargs=1 -complete=customlist,s:complete_submit POJSubmit call <SID>submit(<q-args>)
 
 let g:loaded_poj = 1
 
