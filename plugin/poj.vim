@@ -42,12 +42,20 @@ function! s:login()
   if !exists('g:poj_password')
     let g:poj_password = inputsecret('Password: ')
   endif
-  call system(printf('%s -c %s -d user_id1=%s -d password1=%s -d url=/JudgeOnline/ http://acm.pku.edu.cn/JudgeOnline/login',
-        \ s:curl, s:cookie_file, g:poj_user, g:poj_password))
+  let cmd = printf('%s -c %s -d user_id1=%s -d password1=%s -d url=/JudgeOnline/ http://acm.pku.edu.cn/JudgeOnline/login',
+        \ s:curl, s:cookie_file, g:poj_user, g:poj_password)
+  if exists('g:poj_proxy')
+    let cmd .= ' -x ' . g:poj_proxy
+  endif
+  call system(cmd)
 endfunction
 
 function! s:get_user_status(user)
-  let conn = system(printf('%s -s -G -d user_id=%s http://acm.pku.edu.cn/JudgeOnline/status', s:curl, a:user))
+  let cmd = printf('%s -s -G -d user_id=%s http://acm.pku.edu.cn/JudgeOnline/status', s:curl, a:user)
+  if exists('g:poj_proxy')
+    let cmd .= ' -x ' . g:poj_proxy
+  endif
+  let conn = system(cmd)
 
   let lines = []
   for l in split(conn, '\n')
