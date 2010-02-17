@@ -73,7 +73,7 @@ function! s:get_user_status(user)
   if !bufexists(s:bufnrs[a:user])
     execute 'new poj-' . a:user . '-status'
     let s:bufnrs[a:user] = bufnr('%')
-    setlocal buftype=nofile filetype=pojstatus
+    setlocal buftype=nofile bufhidden=hide noswapfile filetype=pojstatus
     execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_user_status("' . a:user . '")<CR>'
   elseif bufwinnr(s:bufnrs[a:user]) != -1
     execute bufwinnr(s:bufnrs[a:user]) 'wincmd w'
@@ -101,7 +101,7 @@ function! s:get_problem(problem_id)
   let sample_output = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 2)
 
   execute 'new \[' . a:problem_id . '\]' . escape(title, " '",)
-  setlocal buftype=nofile
+  setlocal buftype=nofile bufhidden=hide noswapfile
   call setline(1, '[DESCRIPTION]')
   call append(line('$'), split(desc,'\r<br>'))
   call append(line('$'), ['', '[INPUT]'])
