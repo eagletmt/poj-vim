@@ -84,6 +84,36 @@ function! s:get_user_status(user)
   call setline(1, lines)
 endfunction
 
+function! s:get_problem(problem_id)
+  let cmd = printf('%s -s -G -d id=%d http://acm.pku.edu.cn/JudgeOnline/problem',
+        \ s:curl, a:problem_id)
+  if exists('g:poj_proxy')
+    let cmd .= '-x ' . g:poj_proxy
+  endif
+  let conn = system(cmd)
+
+  let title = matchstr(conn, '<div class="ptt"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
+  let desc  = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
+  let desc = substitute(desc, '<center><img src=\([^>]\+\)></center>', '<http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
+  let input = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 2)
+  let output = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 3)
+  let sample_input = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 1)
+  let sample_output = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 2)
+
+  execute 'new \[' . a:problem_id . '\]' . escape(title, " '",)
+  setlocal buftype=nofile
+  call setline(1, '[DESCRIPTION]')
+  call append(line('$'), split(desc,'\r<br>'))
+  call append(line('$'), ['', '[INPUT]'])
+  call append(line('$'), split(input, '\r<br>'))
+  call append(line('$'), ['', '[OUTPUT]'])
+  call append(line('$'), split(output, '\r<br>'))
+  call append(line('$'), ['', '[SAMPLE INPUT]'])
+  call append(line('$'), split(sample_input, '\r\n'))
+  call append(line('$'), ['', '[SAMPLE OUTPUT]'])
+  call append(line('$'), split(sample_output, '\r\n'))
+endfunction
+
 function! s:submit(problem_id)
   call s:login()
 
@@ -145,6 +175,7 @@ endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
 command! -nargs=1 -complete=customlist,s:complete_submit POJSubmit call <SID>submit(<q-args>)
+command! -nargs=1 POJProblem call <SID>get_problem(<q-args>)
 
 let g:loaded_poj = 1
 
