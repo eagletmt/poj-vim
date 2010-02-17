@@ -103,6 +103,9 @@ function! s:get_problem(problem_id)
   let output = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 3)
   let sample_input = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 1)
   let sample_output = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 2)
+  let hint  = matchstr(conn, '<p class="pst">Hint</p><div class="ptx"[^>]\+>\zs.\{-\}\ze</div>')
+  let hint = substitute(hint, '<img src=\([^ >]\+\)[^>]*>',
+        \ '<http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
 
   execute 'new \[' . a:problem_id . '\]' . escape(title, " '",)
   setlocal buftype=nofile bufhidden=hide noswapfile
@@ -116,6 +119,18 @@ function! s:get_problem(problem_id)
   call append(line('$'), split(sample_input, '\r\n'))
   call append(line('$'), ['', '[SAMPLE OUTPUT]'])
   call append(line('$'), split(sample_output, '\r\n'))
+  if hint != ''
+    call append(line('$'), ['', '[HINT]'])
+    let hint = substitute(hint, '\r', '', 'g')
+    let hint = substitute(hint, '</\?pre>', '<br>', 'g')
+    let hint = s:remove_tags(hint, 'font')
+    let hint = s:remove_tags(hint, 'i')
+    let hint = s:remove_tags(hint, 'b')
+    let hint = substitute(hint, '&lt;', '<', 'g')
+    let hint = substitute(hint, '&gt;', '>', 'g')
+    let hint = substitute(hint, '&amp;', '&', 'g')
+    call append(line('$'), split(hint, '<br>'))
+  endif
 endfunction
 
 function! s:submit(problem_id)
