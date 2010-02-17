@@ -34,6 +34,7 @@ if !executable(s:curl)
 endif
 let s:path_separator = has('win32') ? '\\' : '/'
 let s:cookie_file = substitute(expand('<sfile>:p:h'), 'plugin$', 'cookie', '') . s:path_separator . 'poj.cookie'
+let s:bufnrs = {}
 
 function! s:login()
   if !exists('g:poj_user')
@@ -66,18 +67,18 @@ function! s:get_user_status(user)
     endif
   endfor
 
-  if !exists('s:bufnr_' . a:user)
-    let s:bufnr_{a:user} = -1
+  if !has_key(s:bufnrs, a:user)
+    let s:bufnrs[a:user] = -1
   endif
-  if !bufexists(s:bufnr_{a:user})
+  if !bufexists(s:bufnrs[a:user])
     execute 'new poj-' . a:user . '-status'
-    let s:bufnr_{a:user} = bufnr('%')
+    let s:bufnrs[a:user] = bufnr('%')
     setlocal buftype=nofile filetype=pojstatus
     execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_user_status("' . a:user . '")<CR>'
-  elseif bufwinnr(s:bufnr_{a:user}) != -1
-    execute bufwinnr(s:bufnr_{a:user}) 'wincmd w'
+  elseif bufwinnr(s:bufnrs[a:user]) != -1
+    execute bufwinnr(s:bufnrs[a:user]) 'wincmd w'
   else
-    execute 'sbuffer' s:bufnr_{a:user}
+    execute 'sbuffer' s:bufnrs[a:user]
   endif
 
   call setline(1, lines)
