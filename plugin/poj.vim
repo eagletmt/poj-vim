@@ -94,7 +94,11 @@ function! s:get_problem(problem_id)
 
   let title = matchstr(conn, '<div class="ptt"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
   let desc  = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
-  let desc = substitute(desc, '<center><img src=\([^>]\+\)>\(.\{-\}\)</center>', '\2 <http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
+  let desc = substitute(desc, '<center><img src=\([^ >]\+\)[^>]*>\(.\{-\}\)</center>',
+        \ '\2 <http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
+  let desc = s:remove_tags(desc, 'tt')
+  let desc = s:remove_tags(desc, 'p')
+  let desc = s:remove_tags(desc, 'i')
   let input = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 2)
   let output = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 3)
   let sample_input = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 1)
