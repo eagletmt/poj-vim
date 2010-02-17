@@ -170,7 +170,7 @@ function! s:urlencode(s)
 endfunction
 
 function! s:remove_tags(s, name)
-  return substitute(substitute(a:s, '<' . a:name . ' [^>]\+>', '', 'g'), '</' . a:name . '>', '', 'g')
+  return substitute(substitute(a:s, '<' . a:name . '\(\| [^>]*\)>', '', 'gi'), '</' . a:name . '>', '', 'gi')
 endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
