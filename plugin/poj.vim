@@ -32,6 +32,11 @@ if !executable(s:curl)
   echoerr 'this script requires curl'
   finish
 endif
+let s:w3m = 'w3m'
+if !executable(s:w3m)
+  echoerr 'this script requires w3m'
+  finish
+endif
 let s:path_separator = has('win32') ? '\\' : '/'
 let s:cookie_file = substitute(expand('<sfile>:p:h'), 'plugin$', 'cookie', '') . s:path_separator . 'poj.cookie'
 let s:bufnrs = {}
@@ -94,42 +99,32 @@ function! s:get_problem(problem_id)
 
   let title = matchstr(conn, '<div class="ptt"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
   let desc  = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 1)
-  let desc = substitute(desc, '<center><img src=\([^ >]\+\)[^>]*>\(.\{-\}\)</center>',
-        \ '\2 <http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
-  let desc = s:remove_tags(desc, 'tt')
-  let desc = s:remove_tags(desc, 'p')
-  let desc = s:remove_tags(desc, 'i')
+  let desc = system(printf('%s -T text/html -M -dump -cols %d', s:w3m, &columns), desc)
   let input = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 2)
+  let input = system(printf('%s -T text/html -M -dump -cols %d', s:w3m, &columns), input)
   let output = matchstr(conn, '<div class="ptx"[^>]\+>\zs.\{-\}\ze</div>', 0, 3)
+  let output = system(printf('%s -T text/html -M -dump -cols %d', s:w3m, &columns), output)
   let sample_input = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 1)
   let sample_output = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 2)
   let hint  = matchstr(conn, '<p class="pst">Hint</p><div class="ptx"[^>]\+>\zs.\{-\}\ze</div>')
-  let hint = substitute(hint, '<img src=\([^ >]\+\)[^>]*>',
-        \ '<http://acm.pku.edu.cn/JudgeOnline/\1>', 'g')
+  let hint = system(printf('%s -T text/html -M -dump -cols %d', s:w3m, &columns), hint)
+  let sample_input = matchstr(conn, '<pre class="sio">\zs.\{-\}\ze</pre>', 0, 1)
 
   execute 'new \[' . a:problem_id . '\]' . escape(title, " '",)
   setlocal buftype=nofile bufhidden=hide noswapfile
   call setline(1, '[DESCRIPTION]')
-  call append(line('$'), split(desc,'\r<br>'))
+  call append(line('$'), split(desc,'\n'))
   call append(line('$'), ['', '[INPUT]'])
-  call append(line('$'), split(input, '\r<br>'))
+  call append(line('$'), split(input, '\n'))
   call append(line('$'), ['', '[OUTPUT]'])
-  call append(line('$'), split(output, '\r<br>'))
+  call append(line('$'), split(output, '\n'))
   call append(line('$'), ['', '[SAMPLE INPUT]'])
   call append(line('$'), split(sample_input, '\r\n'))
   call append(line('$'), ['', '[SAMPLE OUTPUT]'])
   call append(line('$'), split(sample_output, '\r\n'))
   if hint != ''
     call append(line('$'), ['', '[HINT]'])
-    let hint = substitute(hint, '\r', '', 'g')
-    let hint = substitute(hint, '</\?pre>', '<br>', 'g')
-    let hint = s:remove_tags(hint, 'font')
-    let hint = s:remove_tags(hint, 'i')
-    let hint = s:remove_tags(hint, 'b')
-    let hint = substitute(hint, '&lt;', '<', 'g')
-    let hint = substitute(hint, '&gt;', '>', 'g')
-    let hint = substitute(hint, '&amp;', '&', 'g')
-    call append(line('$'), split(hint, '<br>'))
+    call append(line('$'), split(hint, '\n'))
   endif
 endfunction
 
