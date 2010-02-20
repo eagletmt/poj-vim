@@ -80,6 +80,7 @@ function! s:get_user_status(user)
     let s:bufnrs[a:user] = bufnr('%')
     setlocal buftype=nofile bufhidden=hide noswapfile filetype=pojstatus
     execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_user_status("' . a:user . '")<CR>'
+    nnoremap <buffer> <silent> <Leader>c :call <SID>show_compile_info_line()<CR>
   elseif bufwinnr(s:bufnrs[a:user]) != -1
     execute bufwinnr(s:bufnrs[a:user]) 'wincmd w'
   else
@@ -87,6 +88,24 @@ function! s:get_user_status(user)
   endif
 
   call setline(1, lines)
+endfunction
+
+function! s:show_compile_info(id)
+  let cmd = printf('%s -s -G -d solution_id=%d http://acm.pku.edu.cn/JudgeOnline/showcompileinfo',
+        \ s:curl, a:id)
+  if exists('g:poj_proxy')
+    let cmd .= '-x ' . g:poj_proxy
+  endif
+  let conn = system(cmd)
+  let info = system(printf('%s -T text/html -M -dump -cols %d', s:w3m, &columns), conn)
+
+  execute 'new \[' . a:id . '\]compile-info'
+  setlocal buftype=nofile bufhidden=hide noswapfile
+  call setline(1, split(info, '\n'))
+endfunction
+
+function! s:show_compile_info_line()
+  call s:show_compile_info(matchstr(getline('.'), '^\d\+'))
 endfunction
 
 function! s:get_problem(problem_id)
@@ -190,6 +209,7 @@ endfunction
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
 command! -nargs=1 -complete=customlist,s:complete_submit POJSubmit call <SID>submit(<q-args>)
 command! -nargs=1 POJProblem call <SID>get_problem(<q-args>)
+command! -nargs=1 POJCompileInfo call <SID>show_compile_info(<q-args>)
 
 let g:loaded_poj = 1
 
