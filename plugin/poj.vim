@@ -56,15 +56,9 @@ function! s:login()
   call system(cmd)
 endfunction
 
-function! s:get_user_status(user)
-  let cmd = printf('%s -s -G -d user_id=%s http://acm.pku.edu.cn/JudgeOnline/status', s:curl, a:user)
-  if exists('g:poj_proxy')
-    let cmd .= ' -x ' . g:poj_proxy
-  endif
-  let conn = system(cmd)
-
+function! s:show_status(conn, func, name)
   let lines = []
-  for l in split(conn, '\n')
+  for l in split(a:conn, '\n')
     let l = s:remove_tags(s:remove_tags(s:remove_tags(l, 'tr'), 'a'), 'font')
     let l = substitute(l, '</td>', '', 'g')
     if l[0:3] == '<td>'
@@ -72,22 +66,33 @@ function! s:get_user_status(user)
     endif
   endfor
 
-  if !has_key(s:bufnrs, a:user)
-    let s:bufnrs[a:user] = -1
+  let key = a:func . ' ' . a:name
+  if !has_key(s:bufnrs, key)
+    let s:bufnrs[key] = -1
   endif
-  if !bufexists(s:bufnrs[a:user])
-    execute 'new poj-' . a:user . '-status'
-    let s:bufnrs[a:user] = bufnr('%')
+  if !bufexists(s:bufnrs[key])
+    execute 'new poj-' . a:func . '-' . a:name . '-status'
+    let s:bufnrs[key] = bufnr('%')
     setlocal buftype=nofile bufhidden=hide noswapfile filetype=pojstatus
-    execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_user_status("' . a:user . '")<CR>'
+    execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_' . a:func . '_status("' . a:name . '")<CR>'
     nnoremap <buffer> <silent> <Leader>c :call <SID>show_compile_info_line()<CR>
-  elseif bufwinnr(s:bufnrs[a:user]) != -1
-    execute bufwinnr(s:bufnrs[a:user]) 'wincmd w'
+  elseif bufwinnr(s:bufnrs[key]) != -1
+    execute bufwinnr(s:bufnrs[key]) 'wincmd w'
   else
-    execute 'sbuffer' s:bufnrs[a:user]
+    execute 'sbuffer' s:bufnrs[key]
   endif
 
   call setline(1, lines)
+endfunction
+
+function! s:get_user_status(user)
+  let cmd = printf('%s -s -G -d user_id=%s http://acm.pku.edu.cn/JudgeOnline/status', s:curl, a:user)
+  if exists('g:poj_proxy')
+    let cmd .= ' -x ' . g:poj_proxy
+  endif
+  let conn = system(cmd)
+
+  call s:show_status(conn, 'user', a:user)
 endfunction
 
 function! s:get_problem_status(problem_id)
@@ -97,32 +102,7 @@ function! s:get_problem_status(problem_id)
   endif
   let conn = system(cmd)
 
-  let lines = []
-  for l in split(conn, '\n')
-    let l = s:remove_tags(s:remove_tags(s:remove_tags(l, 'tr'), 'a'), 'font')
-    let l = substitute(l, '</td>', '', 'g')
-    if l[0:3] == '<td>'
-      call add(lines, substitute(l[4:], '<td>', '\t', 'g'))
-    endif
-  endfor
-
-  let key = 'p ' . a:problem_id
-  if !has_key(s:bufnrs, key)
-    let s:bufnrs[key] = -1
-  endif
-  if !bufexists(s:bufnrs[key])
-    execute 'new poj-' . a:problem_id . '-status'
-    let s:bufnrs[key] = bufnr('%')
-    setlocal buftype=nofile bufhidden=hide noswapfile filetype=pojstatus
-    execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_problem(_status("' . a:problem_id . '")<CR>'
-    nnoremap <buffer> <silent> <Leader>c :call <SID>show_compile_info_line()<CR>
-  elseif bufwinnr(s:bufnrs[key]) != -1
-    execute bufwinnr(s:bufnrs[key]) 'wincmd w'
-  else
-    execute 'sbuffer' s:bufnrs[key]
-  endif
-
-  call setline(1, lines)
+  call s:show_status(conn, 'problem', a:problem_id)
 endfunction
 
 function! s:show_compile_info(id)
