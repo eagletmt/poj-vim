@@ -90,6 +90,41 @@ function! s:get_user_status(user)
   call setline(1, lines)
 endfunction
 
+function! s:get_problem_status(problem_id)
+  let cmd = printf('%s -s -G -d problem_id=%s http://acm.pku.edu.cn/JudgeOnline/status', s:curl, a:problem_id)
+  if exists('g:poj_proxy')
+    let cmd .= ' -x ' . g:poj_proxy
+  endif
+  let conn = system(cmd)
+
+  let lines = []
+  for l in split(conn, '\n')
+    let l = s:remove_tags(s:remove_tags(s:remove_tags(l, 'tr'), 'a'), 'font')
+    let l = substitute(l, '</td>', '', 'g')
+    if l[0:3] == '<td>'
+      call add(lines, substitute(l[4:], '<td>', '\t', 'g'))
+    endif
+  endfor
+
+  let key = 'p ' . a:problem_id
+  if !has_key(s:bufnrs, key)
+    let s:bufnrs[key] = -1
+  endif
+  if !bufexists(s:bufnrs[key])
+    execute 'new poj-' . a:problem_id . '-status'
+    let s:bufnrs[key] = bufnr('%')
+    setlocal buftype=nofile bufhidden=hide noswapfile filetype=pojstatus
+    execute 'nnoremap <buffer> <silent> <Leader><Leader> :call <SID>get_problem(_status("' . a:problem_id . '")<CR>'
+    nnoremap <buffer> <silent> <Leader>c :call <SID>show_compile_info_line()<CR>
+  elseif bufwinnr(s:bufnrs[key]) != -1
+    execute bufwinnr(s:bufnrs[key]) 'wincmd w'
+  else
+    execute 'sbuffer' s:bufnrs[key]
+  endif
+
+  call setline(1, lines)
+endfunction
+
 function! s:show_compile_info(id)
   let cmd = printf('%s -s -G -d solution_id=%d http://acm.pku.edu.cn/JudgeOnline/showcompileinfo',
         \ s:curl, a:id)
@@ -207,6 +242,7 @@ function! s:remove_tags(s, name)
 endfunction
 
 command! -nargs=1 POJUserStatus call <SID>get_user_status(<q-args>)
+command! -nargs=1 POJProblemStatus call <SID>get_problem_status(<q-args>)
 command! -nargs=1 -complete=customlist,s:complete_submit POJSubmit call <SID>submit(<q-args>)
 command! -nargs=1 POJProblem call <SID>get_problem(<q-args>)
 command! -nargs=1 POJCompileInfo call <SID>show_compile_info(<q-args>)
