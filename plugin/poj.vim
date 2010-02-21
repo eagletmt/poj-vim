@@ -160,6 +160,12 @@ function! s:get_problem(problem_id)
     call append(line('$'), ['', '[HINT]'])
     call append(line('$'), split(hint, '\n'))
   endif
+
+  if exists('g:poj_default_lang_ext') && exists('g:poj_work_dir')
+    wincmd p
+    let path = expand(g:poj_work_dir) . s:path_separator . a:problem_id . '.' . g:poj_default_lang_ext
+    execute 'edit ' . path
+  endif
 endfunction
 
 function! s:submit(problem_id)
