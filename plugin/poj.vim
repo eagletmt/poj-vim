@@ -38,7 +38,7 @@ if !executable(s:w3m)
   finish
 endif
 let s:path_separator = has('win32') ? '\\' : '/'
-let s:cookie_file = substitute(expand('<sfile>:p:h'), 'plugin$', 'cookie', '') . s:path_separator . 'poj.cookie'
+let s:cookie_file = tempname()
 let s:bufnrs = {}
 
 function! s:login()
