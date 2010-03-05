@@ -18,5 +18,5 @@ highlight default link pojstatusRE pojstatusPE
 highlight default link pojstatusOLE pojstatusPE
 highlight pojstatusCE ctermfg=Green guifg=Green
 highlight default link pojstatusSE pojstatusCE
-highlight default link pojstatusVE pojstatusVE
+highlight default link pojstatusVE pojstatusCE
 
